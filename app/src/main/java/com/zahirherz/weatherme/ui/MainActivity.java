@@ -3,7 +3,9 @@ package com.zahirherz.weatherme.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -13,6 +15,13 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.GoogleMap;
 
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
@@ -35,14 +44,25 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener {
 
     public static final String TAG = MainActivity.class.getSimpleName();
     public static final String DAILY_FORECAST = "DAILYFORECAST";
     public static final String HOURLY_FORECAST = "HOURLYFORECAST";
 
+    private GoogleMap mMap;
+    private GoogleApiClient mGoogleApiClient;
+    private LocationRequest mLocationRequest;
+    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private Forecast mForecast;
 
+    private double mCurrentLatitude;
+    private double mCurrentLongitude;
+
+    @InjectView(R.id.locationLabel) TextView mLocationLabel;
     @InjectView(R.id.timeLabel) TextView mTimeLabel;
     @InjectView(R.id.temperatureLabel) TextView mTemperatureLabel;
     @InjectView(R.id.humidityValue) TextView mHumidityValue;
@@ -63,22 +83,43 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 getForecast();
+
             }
         });
 
-        getForecast();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+
+        // Create the LocationRequest object
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_LOW_POWER)
+                .setInterval(10 * 1000)        // 10 seconds, in milliseconds
+                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+        //getForecast();
 
         Log.d(TAG, "Main UI code is running");
     }
 
     private void getForecast() {
-        double longitude = 37.8267;
-        double latitude = -122.423;
+        //double longitude = 37.8267;
+        //double latitude = -122.423;
+        Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if(location == null) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        } else {
+            handleNewLocation(location);
+        }
+        Log.i(TAG,"currentLatitutde = " + mCurrentLatitude);
+        Log.i(TAG,"currentLongitude = " + mCurrentLongitude);
         String apiKey = "270c7f2ab16667edce9c3ef49eaabeee";
         String forecastURL = "https://api.forecast.io/forecast/"+ apiKey
-                + "/" + longitude + "," + latitude;
+                + "/" + mCurrentLatitude + "," + mCurrentLongitude;
 
         if(isNetworkAvailable()) {
+            Log.i(TAG, "NetworkAvailable");
             toggleRefresh();
 
             OkHttpClient client = new OkHttpClient();
@@ -150,6 +191,9 @@ public class MainActivity extends Activity {
 
     private void updateDisplay() {
         Current current = mForecast.getCurrent();
+        String location = current.getTimeZone();
+        String[] city = location.split("/");
+        mLocationLabel.setText(city[1].replaceAll( "_", " "));
         mTemperatureLabel.setText(current.getTemperature() + "");
         mTimeLabel.setText(current.getFormatedTime());
         mHumidityValue.setText(current.getHumidity() + "");
@@ -264,4 +308,61 @@ public class MainActivity extends Activity {
         startActivity(intent);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.i(TAG, "Location services connected.");
+        Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if(location == null) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        } else {
+            handleNewLocation(location);
+        }
+        mCurrentLatitude = location.getLatitude();
+        mCurrentLongitude = location.getLongitude();
+        getForecast();
+    }
+
+    private void handleNewLocation(Location location) {
+        Log.i(TAG,location.toString());
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.i(TAG, "Location services suspended. Please reconnect.");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        if (connectionResult.hasResolution()) {
+            try {
+                // Start an Activity that tries to resolve the error
+                connectionResult.startResolutionForResult(this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+            } catch (IntentSender.SendIntentException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.i(TAG, "Location services connection failed with code " + connectionResult.getErrorCode());
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        handleNewLocation(location);
+    }
 }
