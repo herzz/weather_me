@@ -12,6 +12,7 @@ import android.widget.Toast;
 import com.zahirherz.weatherme.R;
 import com.zahirherz.weatherme.ui.HourlyForecastActivity;
 import com.zahirherz.weatherme.weather.Hour;
+import com.zahirherz.weatherme.weather.WeatherFact;
 
 public class HourAdapter extends RecyclerView.Adapter<HourAdapter.HourViewHolder>{
 
@@ -48,6 +49,7 @@ public class HourAdapter extends RecyclerView.Adapter<HourAdapter.HourViewHolder
     public class HourViewHolder extends RecyclerView.ViewHolder
     implements View.OnClickListener{
 
+        private WeatherFact mWeatherFact;
         public TextView mTimeLabel;
         public TextView mSummaryLabel;
         public TextView mTemperatureLabel;
@@ -56,6 +58,7 @@ public class HourAdapter extends RecyclerView.Adapter<HourAdapter.HourViewHolder
         public HourViewHolder(View itemView) {
             super(itemView);
 
+            mWeatherFact = new WeatherFact();
             mTimeLabel = (TextView) itemView.findViewById(R.id.timeLabel);
             mSummaryLabel = (TextView) itemView.findViewById(R.id.summaryLabel);
             mTemperatureLabel = (TextView) itemView.findViewById(R.id.temperatureLabel);
@@ -75,10 +78,12 @@ public class HourAdapter extends RecyclerView.Adapter<HourAdapter.HourViewHolder
             String time = mTimeLabel.getText().toString();
             String temperature = mTemperatureLabel.getText().toString();
             String summary = mSummaryLabel.getText().toString();
-            String message = String.format("At %s it will be %s and %s",
-                    time,
-                    temperature,
-                    summary);
+            String randomFact = mWeatherFact.getFact();
+            String message = String.format("%s",
+               //     time,
+               //     temperature,
+               //     summary,
+                    randomFact);
             Toast.makeText(mContext, message, Toast.LENGTH_LONG).show();
         }
     }
