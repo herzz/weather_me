@@ -23,6 +23,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
@@ -340,6 +341,8 @@ public class MainActivity extends Activity implements
 
     private void handleNewLocation(Location location) {
         Log.i(TAG,location.toString());
+        mCurrentLatitude = location.getLatitude();
+        mCurrentLongitude = location.getLongitude();
     }
 
     @Override
