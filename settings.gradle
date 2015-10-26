@@ -1,1 +1,2 @@
-include ':app'
+include ':WeatherMe'
+project(':WeatherMe').projectDir = new File('app')
