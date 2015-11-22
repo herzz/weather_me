@@ -34,6 +34,16 @@ public class Forecast {
         mDailyForecast = dailyForecast;
     }
 
+    // Converts to celsius
+    public static int convertFahrenheitToCelsius(double fahrenheit) {
+        return (int) (Math.round(fahrenheit - 32) * 5 / 9);
+    }
+
+    // Converts to fahrenheit
+    public static int convertCelsiusToFahrenheit(double celsius) {
+        return (int) (Math.round(celsius * 9) / 5) + 32;
+    }
+
     public static int getIconId(String iconString) {
         // clear-day, clear-night, rain, snow, sleet, wind, fog, cloudy, partly-cloudy-day, or partly-cloudy-night
         int iconId = R.drawable.clear_day;

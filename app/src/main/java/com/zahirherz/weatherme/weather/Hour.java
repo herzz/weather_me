@@ -3,6 +3,8 @@ package com.zahirherz.weatherme.weather;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.zahirherz.weatherme.ui.MainActivity;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -41,7 +43,15 @@ public class Hour implements Parcelable{
     }
 
     public int getTemperature() {
-        return (int) Math.round(mTemperature);
+        boolean firstTime = false;
+        if(!MainActivity.isFahrenheit()){
+            firstTime = true;
+            return Forecast.convertFahrenheitToCelsius(mTemperature);
+        } else if (MainActivity.isFahrenheit() && firstTime) {
+            return Forecast.convertCelsiusToFahrenheit(mTemperature);
+        } else {
+            return (int) Math.round(mTemperature);
+        }
     }
 
     public void setTemperature(double temperature) {

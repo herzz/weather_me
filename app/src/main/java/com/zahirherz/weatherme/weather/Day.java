@@ -3,6 +3,8 @@ package com.zahirherz.weatherme.weather;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.zahirherz.weatherme.ui.MainActivity;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -31,7 +33,15 @@ public class Day implements Parcelable{
     }
 
     public int getTemperatureMax() {
-        return (int) Math.round(mTemperatureMax);
+        boolean firstTime = false;
+        if(!MainActivity.isFahrenheit()){
+            firstTime = true;
+            return Forecast.convertFahrenheitToCelsius(mTemperatureMax);
+        } else if (MainActivity.isFahrenheit() && firstTime) {
+            return Forecast.convertCelsiusToFahrenheit(mTemperatureMax);
+        } else {
+            return (int) Math.round(mTemperatureMax);
+        }
     }
 
     public void setTemperatureMax(double temperatureMax) {

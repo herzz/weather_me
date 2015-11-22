@@ -23,7 +23,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
@@ -63,6 +62,8 @@ public class MainActivity extends Activity implements
     private double mCurrentLatitude;
     private double mCurrentLongitude;
 
+    private static boolean mFahrenheit = true;
+
     @InjectView(R.id.locationLabel) TextView mLocationLabel;
     @InjectView(R.id.timeLabel) TextView mTimeLabel;
     @InjectView(R.id.temperatureLabel) TextView mTemperatureLabel;
@@ -72,6 +73,7 @@ public class MainActivity extends Activity implements
     @InjectView(R.id.iconImageView) ImageView mIconImageView;
     @InjectView(R.id.refreshImageView) ImageView mRefreshImageView;
     @InjectView(R.id.progressBar) ProgressBar mProgressBar;
+    @InjectView(R.id.degreeImageView) ImageView mDegreeImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +89,13 @@ public class MainActivity extends Activity implements
 
             }
         });
+        mDegreeImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleWeatherType();
+                getForecast();
+            }
+        });
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -99,9 +108,19 @@ public class MainActivity extends Activity implements
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
                 .setInterval(10 * 1000)        // 10 seconds, in milliseconds
                 .setFastestInterval(1 * 1000); // 1 second, in milliseconds
-        //getForecast();
 
-        Log.d(TAG, "Main UI code is running");
+    }
+
+    private void toggleWeatherType() {
+        if(mFahrenheit) {
+            mFahrenheit = false;
+        } else {
+            mFahrenheit = true;
+        }
+    }
+
+    public static boolean isFahrenheit() {
+        return mFahrenheit;
     }
 
     private void getForecast() {
@@ -195,7 +214,15 @@ public class MainActivity extends Activity implements
         String location = current.getTimeZone();
         String[] city = location.split("/");
         mLocationLabel.setText(city[1].replaceAll( "_", " "));
-        mTemperatureLabel.setText(current.getTemperature() + "");
+        boolean firstTime = false;
+        if(!mFahrenheit) {
+            firstTime = true;
+            mTemperatureLabel.setText(Forecast.convertFahrenheitToCelsius(current.getTemperature()) + "");
+        } else if (mFahrenheit && firstTime){
+            mTemperatureLabel.setText(Forecast.convertCelsiusToFahrenheit(current.getTemperature()) + "");
+        } else {
+            mTemperatureLabel.setText(current.getTemperature() + "");
+        }
         mTimeLabel.setText(current.getFormatedTime());
         mHumidityValue.setText(current.getHumidity() + "");
         mPrecipValue.setText(current.getPercipChance() + "%");
