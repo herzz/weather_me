@@ -1,12 +1,8 @@
 package com.zahirherz.weatherme.weather;
 
-import org.w3c.dom.Text;
-
 import java.util.Random;
 
 public class WeatherFact {
-    private String[] facts;
-    /*
     public String[] facts = {
             "Al'Aziziyah in Libya has the highest recorded temperature on earth at a sweltering 58°C / 136.4°F on the 13th Sept, 1922.",
             "The lowest ever recorded world temperature was at Vostok Station, Antarctica on the 21 July 1983 at a bitter -89.6°C / -129.28°F",
@@ -25,7 +21,7 @@ public class WeatherFact {
             "With tyres for his mouth and trees for arms, ‘Angus’ - the tallest snowman, was made by residents of Bethel, Maine, USA, measuring a whopping 34.63 metres / 113.6 feet. ‘Angus’ took 2 weeks to build, and was completed on 17 February 1999.",
             "The greatest snowfall recorded was on Mt Rainier, Washington State, USA - Over 30 metres / 98.4 feet fell during the winter of 1972.",
             "On 14th April, 1986 Bangladesh was hit by the biggest hail stones ever recorded - weighing in at over 1kg / 2.2lb each - killing 92 people."};
-*/
+
     public String getFact() {
         // randomly choose fact and display to user
         String fact = "";
