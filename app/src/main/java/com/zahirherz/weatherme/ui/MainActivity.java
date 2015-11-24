@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -39,6 +41,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -58,6 +62,8 @@ public class MainActivity extends Activity implements
     private LocationRequest mLocationRequest;
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private Forecast mForecast;
+
+    private String mCity;
 
     private double mCurrentLatitude;
     private double mCurrentLongitude;
@@ -131,6 +137,22 @@ public class MainActivity extends Activity implements
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         } else {
             handleNewLocation(location);
+        }
+
+        Geocoder gcd = new Geocoder(getBaseContext(), Locale.getDefault());
+        List<Address> addresses;
+        try {
+            addresses = gcd.getFromLocation(location.getLatitude(),location.getLongitude(),1);
+            Log.d(TAG, "/// addresses size " + addresses.size() + "");
+            if (addresses.size() > 0) {
+                Address address = addresses.get(0);
+                String string = address.getAddressLine(1);
+                String[] parts = string.split(",");
+                mCity = parts[0];
+                Log.d(TAG, "/// CITY " + mCity);
+            }
+        } catch (IOException e) {
+            Log.d(TAG, "/// " + e);
         }
         Log.i(TAG,"currentLatitutde = " + mCurrentLatitude);
         Log.i(TAG,"currentLongitude = " + mCurrentLongitude);
@@ -212,8 +234,7 @@ public class MainActivity extends Activity implements
     private void updateDisplay() {
         Current current = mForecast.getCurrent();
         String location = current.getTimeZone();
-        String[] city = location.split("/");
-        mLocationLabel.setText(city[1].replaceAll( "_", " "));
+
         boolean firstTime = false;
         if(!mFahrenheit) {
             firstTime = true;
@@ -223,6 +244,7 @@ public class MainActivity extends Activity implements
         } else {
             mTemperatureLabel.setText(current.getTemperature() + "");
         }
+        mLocationLabel.setText(mCity);
         mTimeLabel.setText(current.getFormatedTime());
         mHumidityValue.setText(current.getHumidity() + "");
         mPrecipValue.setText(current.getPercipChance() + "%");
